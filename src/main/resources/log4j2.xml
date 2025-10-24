@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~ This piece of work is to enhance conflux project functionality.           ~
+  ~                                                                           ~
+  ~ Author:    eomisore                                                       ~
+  ~ File:      log4j2.xml                                                     ~
+  ~ Created:   21/10/2025, 00:52                                              ~
+  ~ Modified:  21/10/2025, 00:52                                              ~
+  ~                                                                           ~
+  ~ Copyright (c)  2025.  Aerosimo Ltd                                        ~
+  ~                                                                           ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a   ~
+  ~ copy of this software and associated documentation files (the "Software"),~
+  ~ to deal in the Software without restriction, including without limitation ~
+  ~ the rights to use, copy, modify, merge, publish, distribute, sublicense,  ~
+  ~ and/or sell copies of the Software, and to permit persons to whom the     ~
+  ~ Software is furnished to do so, subject to the following conditions:      ~
+  ~                                                                           ~
+  ~ The above copyright notice and this permission notice shall be included   ~
+  ~ in all copies or substantial portions of the Software.                    ~
+  ~                                                                           ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,           ~
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES           ~
+  ~ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                  ~
+  ~ NONINFINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT                ~
+  ~ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,              ~
+  ~ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING              ~
+  ~ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE                ~
+  ~ OR OTHER DEALINGS IN THE SOFTWARE.                                        ~
+  ~                                                                           ~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+<Configuration status="WARN" monitorInterval="60">
+
+    <!-- ========= Properties ========= -->
+    <Properties>
+        <property name="baseLogDir">/opt/logs</property>
+        <property name="fileyear">${date:yyyy}</property>
+        <property name="filemonth">${date:MMMM}</property>
+        <property name="fileday">${date:ddMMyyyy}</property>
+        <!-- Optional: fallback to user.home if /opt/logs is not writable -->
+        <property name="fallbackDir">${sys:user.home}/confluxLogs</property>
+    </Properties>
+
+    <!-- ========= Appenders ========= -->
+    <Appenders>
+
+        <!-- 🧾 Rolling File Appender -->
+        <RollingFile name="FileAppender"
+                     fileName="${baseLogDir}/${fileyear}/${filemonth}/${fileday}.log"
+                     filePattern="${baseLogDir}/${fileyear}/${filemonth}/${fileday}-%d{dd-MMMM-yyyy}-%i.log.gz"
+                     createOnDemand="true">
+            <PatternLayout>
+                <Pattern>[%-5level] %d{EEE dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+        </RollingFile>
+
+        <!-- 🪶 Fallback Rolling File (when /opt/logs is not writable) -->
+        <RollingFile name="FallbackFileAppender"
+                     fileName="${fallbackDir}/${fileyear}/${filemonth}/${fileday}.log"
+                     filePattern="${fallbackDir}/${fileyear}/${filemonth}/${fileday}-%d{dd-MMMM-yyyy}-%i.log.gz"
+                     createOnDemand="true">
+            <PatternLayout>
+                <Pattern>[%-5level] %d{EEE dd-MM-yyyy HH:mm:ss.SSS} [%t] %c{1} - %msg%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+        </RollingFile>
+
+        <!-- 🖥 Console Appender -->
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%-5level] %d{HH:mm:ss} [%t] %c{1} - %msg%n"/>
+        </Console>
+
+    </Appenders>
+
+    <!-- ========= Loggers ========= -->
+    <Loggers>
+        <!-- Application Logs -->
+        <Logger name="com.aerosimo" level="debug" additivity="false">
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="FallbackFileAppender"/>
+            <AppenderRef ref="ConsoleAppender"/>
+        </Logger>
+
+        <!-- Root Logger -->
+        <Root level="info">
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="FallbackFileAppender"/>
+            <AppenderRef ref="ConsoleAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>
