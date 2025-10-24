@@ -31,6 +31,7 @@
 
 package com.aerosimo.ominet.api.rest;
 
+import com.aerosimo.ominet.dao.impl.ImageUploadDTO;
 import com.aerosimo.ominet.dao.mapper.AvatarDAO;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -40,7 +41,9 @@ import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Base64;
 
 @Path("/avatar")
 public class AvatarREST {
@@ -84,5 +87,33 @@ public class AvatarREST {
                     .entity("No image found for email: " + email).build();
         }
         return Response.ok(imageDTO).build();
+    }
+
+    @POST
+    @Path("/transfer")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response uploadAvatarJson(ImageUploadDTO dto) {
+        if (dto == null || dto.getUsername() == null || dto.getEmail() == null || dto.getAvatar() == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Missing required fields").build();
+        }
+
+        try {
+            // Strip metadata if present (e.g., "data:image/png;base64,")
+            String base64Data = dto.getAvatar().contains(",")
+                    ? dto.getAvatar().split(",")[1]
+                    : dto.getAvatar();
+
+            byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+            InputStream avatarStream = new ByteArrayInputStream(imageBytes);
+
+            String result = AvatarDAO.saveImage(dto.getUsername(), dto.getEmail(), avatarStream);
+            return Response.ok("Upload status: " + result).build();
+
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Invalid base64 image format").build();
+        }
     }
 }
