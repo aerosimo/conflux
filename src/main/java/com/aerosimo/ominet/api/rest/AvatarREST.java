@@ -58,7 +58,6 @@ public class AvatarREST {
             @FormDataParam("email") String email,
             @FormDataParam("file") InputStream fileInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetail) {
-
         if (fileInputStream == null || username == null || email == null) {
             log.error("Missing required fields");
             return Response.status(Response.Status.BAD_REQUEST)
@@ -79,7 +78,6 @@ public class AvatarREST {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Missing email or username").build();
         }
-
         var imageDTO = AvatarDAO.getImage(username, email);
         if (imageDTO == null || imageDTO.getAvatar() == null) {
             log.error("No image found for email: {}", email);
@@ -95,25 +93,44 @@ public class AvatarREST {
     @Produces(MediaType.TEXT_PLAIN)
     public Response uploadAvatarJson(ImageUploadDTO dto) {
         if (dto == null || dto.getUsername() == null || dto.getEmail() == null || dto.getAvatar() == null) {
+            log.error("Missing required fields for delete request");
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Missing required fields").build();
         }
-
         try {
             // Strip metadata if present (e.g., "data:image/png;base64,")
             String base64Data = dto.getAvatar().contains(",")
                     ? dto.getAvatar().split(",")[1]
                     : dto.getAvatar();
-
             byte[] imageBytes = Base64.getDecoder().decode(base64Data);
             InputStream avatarStream = new ByteArrayInputStream(imageBytes);
-
             String result = AvatarDAO.saveImage(dto.getUsername(), dto.getEmail(), avatarStream);
+            log.info("User avatar transferred for {} with response -> {}", dto.getUsername(), result);
             return Response.ok("Upload status: " + result).build();
-
         } catch (IllegalArgumentException e) {
+            log.error("Invalid base64 image format");
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Invalid base64 image format").build();
+        }
+    }
+
+    @DELETE
+    @Path("/{email}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response deleteAvatar(@PathParam("email") String email) {
+        if (email == null || email.isEmpty()) {
+            log.error("Email is required for deletion");
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Email is required for deletion").build();
+        }
+        String result = AvatarDAO.removeImage(email);
+        if ("success".equalsIgnoreCase(result)) {
+            log.info("Image deleted successfully for: {} with the following response {}", email, result);
+            return Response.ok("Image deleted successfully for: " + email).build();
+        } else {
+            log.error("Failed to delete image for: {}", email);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Failed to delete image for: " + email).build();
         }
     }
 }

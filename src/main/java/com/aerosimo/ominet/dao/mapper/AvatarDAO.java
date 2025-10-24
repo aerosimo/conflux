@@ -103,4 +103,24 @@ public class AvatarDAO {
         }
         return response;
     }
+
+    public static String removeImage(String email) {
+        log.info("Preparing to delete user Avatar");
+        String response = "";
+        String sql = "{call profile_pkg.removeImage(?,?)}";
+        try (Connection con = Connect.dbase();
+             CallableStatement stmt = con.prepareCall(sql)) {
+
+            stmt.setString(1, email);
+            stmt.registerOutParameter(2, OracleTypes.VARCHAR);
+            stmt.execute();
+            response = stmt.getString(2);
+            log.info("Image remove for user {} -> {}", email, response);
+        } catch (SQLException err) {
+            log.error("Error removing image for {}", email,err);
+        } finally {
+            log.info("DB Connection for (removeImage) Closed....");
+        }
+        return response;
+    }
 }
