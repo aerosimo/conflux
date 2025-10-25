@@ -91,6 +91,7 @@
     <scm>
         <url>https://github.com/aerosimo/conflux.git</url>
         <connection>git@github.com/aerosimo/conflux.git</connection>
+        <developerConnection>https://github.com/aerosimo/conflux.git</developerConnection>
     </scm>
 
     <properties>
@@ -119,7 +120,6 @@
         <log4j.version>2.25.1</log4j.version>
         <jstl.version>3.0.1</jstl.version>
         <mail.version>2.1.2</mail.version>
-        <xml.version>4.0.2</xml.version>
         <jws.version>3.0.0</jws.version>
         <rs.version>4.0.0</rs.version>
     </properties>
@@ -160,12 +160,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>jakarta.xml.ws</groupId>
-            <artifactId>jakarta.xml.ws-api</artifactId>
-            <version>${xml.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>jakarta.mail</groupId>
             <artifactId>jakarta.mail-api</artifactId>
             <version>${mail.version}</version>
@@ -175,17 +169,6 @@
             <groupId>jakarta.servlet.jsp.jstl</groupId>
             <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
             <version>${jstl.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>jaxws-ri</artifactId>
-            <version>${xml.version}</version>
-            <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>jaxws-rt</artifactId>
-            <version>${xml.version}</version>
         </dependency>
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>

@@ -32,6 +32,7 @@
 package com.aerosimo.ominet.dao.mapper;
 
 import com.aerosimo.ominet.core.config.Connect;
+import com.aerosimo.ominet.core.model.Spectre;
 import com.aerosimo.ominet.dao.impl.ImageResponseDTO;
 import oracle.jdbc.OracleTypes;
 import org.apache.logging.log4j.LogManager;
@@ -47,11 +48,10 @@ public class AvatarDAO {
 
     public static String saveImage(String uname, String email, InputStream avatarStream) {
         log.info("Preparing to save user Avatar");
-        String response = "";
-        String sql = "{call profile_pkg.saveImage(?,?,?,?)}";
+        var response = "";
+        var sql = "{call profile_pkg.saveImage(?,?,?,?)}";
         try (Connection con = Connect.dbase();
              CallableStatement stmt = con.prepareCall(sql)) {
-
             stmt.setString(1, uname);
             stmt.setString(2, email);
             stmt.setBlob(3, avatarStream);
@@ -60,7 +60,13 @@ public class AvatarDAO {
             response = stmt.getString(4);
             log.info("Image saved for user {} -> {}", email, response);
         } catch (SQLException err) {
-            log.error("Error saving image for {}", email,err);
+            log.error("Error saving image for {}", email, err);
+            try {
+                Spectre.recordError("TE-20001", err.getMessage(), AccountDAO.class.getName());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            response = "Save Image error %s".formatted(err.getMessage());
         } finally {
             log.info("DB Connection for (saveImage) Closed....");
         }
@@ -70,8 +76,7 @@ public class AvatarDAO {
     public static ImageResponseDTO getImage(String uname, String email) {
         log.info("Preparing to retrieve user Avatar");
         ImageResponseDTO response = null;
-        String sql = "{call profile_pkg.getImage(?,?,?)}";
-
+        var sql = "{call profile_pkg.getImage(?,?,?)}";
         try (Connection con = Connect.dbase();
              CallableStatement stmt = con.prepareCall(sql)) {
             stmt.setString(1, uname);
@@ -89,7 +94,7 @@ public class AvatarDAO {
                     if (blob != null) {
                         byte[] bytes = blob.getBytes(1, (int) blob.length());
                         blob.free();
-                        String base64 = Base64.getEncoder().encodeToString(bytes);
+                        var base64 = Base64.getEncoder().encodeToString(bytes);
                         response.setAvatar("data:image/png;base64," + base64);
                     } else {
                         response.setAvatar(null);
@@ -98,6 +103,11 @@ public class AvatarDAO {
             }
         } catch (SQLException err) {
             log.error("Error retrieving avatar for {}", email, err);
+            try {
+                Spectre.recordError("TE-20001", err.getMessage(), AccountDAO.class.getName());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         } finally {
             log.info("DB Connection for (getImage) Closed....");
         }
@@ -106,18 +116,23 @@ public class AvatarDAO {
 
     public static String removeImage(String email) {
         log.info("Preparing to delete user Avatar");
-        String response = "";
-        String sql = "{call profile_pkg.removeImage(?,?)}";
+        var response = "";
+        var sql = "{call profile_pkg.removeImage(?,?)}";
         try (Connection con = Connect.dbase();
              CallableStatement stmt = con.prepareCall(sql)) {
-
             stmt.setString(1, email);
             stmt.registerOutParameter(2, OracleTypes.VARCHAR);
             stmt.execute();
             response = stmt.getString(2);
             log.info("Image remove for user {} -> {}", email, response);
         } catch (SQLException err) {
-            log.error("Error removing image for {}", email,err);
+            log.error("Error removing image for {}", email, err);
+            try {
+                Spectre.recordError("TE-20001", err.getMessage(), AccountDAO.class.getName());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            response = "Delete Image error %s".formatted(err.getMessage());
         } finally {
             log.info("DB Connection for (removeImage) Closed....");
         }

@@ -63,7 +63,7 @@ public class AvatarREST {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Missing required fields").build();
         }
-        String result = AvatarDAO.saveImage(username, email, fileInputStream);
+        var result = AvatarDAO.saveImage(username, email, fileInputStream);
         log.info("Save avatar request for {} with response -> {}", email, result);
         return Response.ok("Upload status: " + result).build();
     }
@@ -104,7 +104,7 @@ public class AvatarREST {
                     : dto.getAvatar();
             byte[] imageBytes = Base64.getDecoder().decode(base64Data);
             InputStream avatarStream = new ByteArrayInputStream(imageBytes);
-            String result = AvatarDAO.saveImage(dto.getUsername(), dto.getEmail(), avatarStream);
+            var result = AvatarDAO.saveImage(dto.getUsername(), dto.getEmail(), avatarStream);
             log.info("User avatar transferred for {} with response -> {}", dto.getUsername(), result);
             return Response.ok("Upload status: " + result).build();
         } catch (IllegalArgumentException e) {
@@ -123,7 +123,7 @@ public class AvatarREST {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Email is required for deletion").build();
         }
-        String result = AvatarDAO.removeImage(email);
+        var result = AvatarDAO.removeImage(email);
         if ("success".equalsIgnoreCase(result)) {
             log.info("Image deleted successfully for: {} with the following response {}", email, result);
             return Response.ok("Image deleted successfully for: " + email).build();
